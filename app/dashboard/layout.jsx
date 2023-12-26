@@ -1,5 +1,7 @@
-import React from "react";
-import SideNav from "../components/navbar/SideNav";
+'use client';
+import React, { useEffect } from 'react';
+import SideNav from '../components/navbar/SideNav';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Layout({ children }) {
   return (

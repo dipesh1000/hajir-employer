@@ -1,46 +1,67 @@
 // AuthenticationPage.jsx
-"use client";
-import React, { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
-import UserAuthForm from "../components/UserAuthForm";
+'use client';
+import React, { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
+import UserAuthForm from '../components/UserAuthForm';
+import { useFormik } from 'formik';
+import { useRouter } from 'next/navigation';
 
 export default function AuthenticationPage() {
   const [response, setResponse] = useState({});
-
-  const handleApiRequest = async (phoneNumber) => {
-    try {
-      const apiResponse = await fetch(
-        "https://system.hajirapp.com/api/employer/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ phone: phoneNumber }),
+  const router = useRouter();
+  const formik = useFormik({
+    initialValues: {
+      phone: '',
+    },
+    onSubmit: async (values) => {
+      try {
+        const apiResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/employer/register`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(values),
+          }
+        );
+        if (!apiResponse.ok) {
+          throw new Error('Network response was not ok');
         }
-      );
-
-      if (!apiResponse.ok) {
-        throw new Error("Network response was not ok");
+        const data = await apiResponse.json();
+        setResponse(data);
+        if (data.status === 'success') {
+          alert(`Successfully Registered.  \n Your OTP is: ${data.data.otp}`);
+          console.log('OTP:values', data.data.otp);
+          // console.log('Token:', data.data.token);
+          router.push(`/signin?phone=${values.phone}&otp=${data.data.otp}`);
+        } else {
+          console.error('Registration failed. Message:', data.message);
+        }
+      } catch (error) {
+        console.error('Error during API request:', error.message);
       }
+    },
+  });
 
-      const data = await apiResponse.json();
-      setResponse(data);
+  // const handleSubmit = async (event) => {
 
-      if (data.status === "success") {
-        console.log("Successfully Registered. OTP Sent Successfully");
-        console.log("OTP:", data.data.otp);
-        console.log("Token:", data.data.token);
-      } else {
-        console.error("Registration failed. Message:", data.message);
-      }
-    } catch (error) {
-      console.error("Error during API request:", error.message);
-    }
-  };
+  //   event.preventDefault();
+  //   setIsLoading(true);
+  //   // Assume that the phone number is retrieved from the input with the id "number"
+  //   const phoneNumber = event.target.number.value;
+
+  //   try {
+  //     await onSubmit(phoneNumber);
+  //   } catch (error) {
+  //     console.error('Error during API request:', error.message);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   return (
     <>
@@ -64,8 +85,8 @@ export default function AuthenticationPage() {
         <Link
           href="https://hajirapp.com"
           className={cn(
-            buttonVariants({ variant: "ghost" }),
-            "absolute right-4 top-4 md:right-8 md:top-8"
+            buttonVariants({ variant: 'ghost' }),
+            'absolute right-4 top-4 md:right-8 md:top-8'
           )}
         >
           Official Site
@@ -108,7 +129,10 @@ export default function AuthenticationPage() {
                 Enter your Phone number
               </p>
             </div>
-            <UserAuthForm onSubmit={handleApiRequest} />
+            <UserAuthForm
+              // onSubmit={handleApiRequest}
+              formik={formik}
+            />
             <p className="px-8 text-center text-sm text-muted-foreground">
               We will send you a one-time password on this mobile number.
               <br />

@@ -1,57 +1,108 @@
-"use client";
+'use client';
 // OTPPage.jsx
-import React, { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button"; // Make sure to import necessary components
-import { Button } from "@/components/ui/button";
-import { toast } from "react-toastify";
+import React, { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button'; // Make sure to import necessary components
+import { Button } from '@/components/ui/button';
+import { toast } from 'react-toastify';
+import { useFormik } from 'formik';
+import { useAuth } from '@/context/AuthContext';
 
 export default function OTPPage() {
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const query = useSearchParams();
+  const otpnumber = query.get('otp');
+  const phone = query.get('phone');
+
+  const { authUser, setAuthUser, isLoggedIn, setIsLoggedIn } = useAuth();
+
+  const [otp, setOtp] = useState(
+    otpnumber?.toString().split('') || ['', '', '', '']
+  );
+
+  async function getData(values) {
+    const apiResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/employer/verify-opt`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      }
+    );
+    if (!apiResponse.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return apiResponse.json();
+  }
+
+  const formik = useFormik({
+    initialValues: {
+      phone: phone || '',
+      otp: otpnumber || '',
+    },
+    onSubmit: async (values) => {
+      try {
+        const data = await getData(values);
+        // setResponse(data);
+        if (data.status === 'success') {
+          localStorage.setItem('token', JSON.stringify(data.data.token));
+          localStorage.setItem('user', JSON.stringify(data.data.user));
+        } else {
+          console.error('Registration failed. Message:', data.message);
+        }
+      } catch (error) {
+        console.error('Error during API request:', error.message);
+      }
+    },
+    enableReinitialize: true,
+  });
 
   const handleInputChange = (index, value) => {
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
+    let otpString = newOtp ? newOtp.join('') : '';
+    formik.setFieldValue('otp', otpString);
   };
 
-  const handleVerify = async () => {
-    const enteredOtp = otp.join("");
-    const apiEndpoint = "https://system.hajirapp.com/api/employer/verify-opt";
+  // const handleVerify = async () => {
+  //   const enteredOtp = otp.join('');
+  //   const apiEndpoint = `${process.env.NEXT_PUBLIC_API_URL}/employer/verify-opt`;
 
-    try {
-      const response = await fetch(apiEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ otp: enteredOtp }),
-      });
+  //   try {
+  //     const response = await fetch(apiEndpoint, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ otp: enteredOtp, phone }),
+  //     });
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+  //     if (!response.ok) {
+  //       throw new Error('Network response was not ok');
+  //     }
 
-      const data = await response.json();
+  //     const data = await response.json();
 
-      if (data.status === "success") {
-        // Use react-toastify to show success message
-        toast.success(
-          "OTP verification successful! Redirecting to dashboard..."
-        );
-        router.push("/dashboard");
-      } else {
-        // Use react-toastify to show error message
-        toast.error(`OTP verification failed. Message: ${data.message}`);
-      }
-    } catch (error) {
-      // Use react-toastify to show a generic error message
-      toast.error(`Error during OTP verification: ${error.message}`);
-    }
-  };
+  //     if (data.status === 'success') {
+  //       // Use react-toastify to show success message
+  //       toast.success(
+  //         'OTP verification successful! Redirecting to dashboard...'
+  //       );
+  //       router.push('/dashboard');
+  //     } else {
+  //       // Use react-toastify to show error message
+  //       toast.error(`OTP verification failed. Message: ${data.message}`);
+  //     }
+  //   } catch (error) {
+  //     // Use react-toastify to show a generic error message
+  //     toast.error(`Error during OTP verification: ${error.message}`);
+  //   }
+  // };
 
   return (
     <>
@@ -75,8 +126,8 @@ export default function OTPPage() {
         <Link
           href="https://hajirapp.com"
           className={cn(
-            buttonVariants({ variant: "ghost" }),
-            "absolute right-4 top-4 md:right-8 md:top-8"
+            buttonVariants({ variant: 'ghost' }),
+            'absolute right-4 top-4 md:right-8 md:top-8'
           )}
         >
           Official Site
@@ -109,38 +160,42 @@ export default function OTPPage() {
             </blockquote>
           </div>
         </div>
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-          <div className="flex flex-col space-y-2 text-center">
-            <h1 className="text-2xl font-semibold tracking-tight">Enter OTP</h1>
-            <p className="text-sm text-muted-foreground">
-              Enter the one-time password sent to your mobile number
+        <form onSubmit={formik.handleSubmit}>
+          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+            <div className="flex flex-col space-y-2 text-center">
+              <h1 className="text-2xl font-semibold tracking-tight">
+                Enter OTP
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Enter the one-time password sent to your mobile number
+              </p>
+            </div>
+
+            {/* OTP input boxes */}
+            <div className="flex space-x-4">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  maxLength="1"
+                  value={digit}
+                  onChange={(e) => handleInputChange(index, e.target.value)}
+                  className="w-12 h-12 text-center border rounded-md"
+                />
+              ))}
+            </div>
+
+            {/* Verify button */}
+            {/* <Link href="/dashboard"> */}
+            <Button type="submit">Verify</Button>
+            {/* </Link> */}
+
+            <p className="px-8 text-center text-sm text-muted-foreground">
+              <span className="font-bold">Resend OTP</span> |{' '}
+              <span className="font-bold">Change Number</span>
             </p>
           </div>
-
-          {/* OTP input boxes */}
-          <div className="flex space-x-4">
-            {otp.map((digit, index) => (
-              <input
-                key={index}
-                type="text"
-                maxLength="1"
-                value={digit}
-                onChange={(e) => handleInputChange(index, e.target.value)}
-                className="w-12 h-12 text-center border rounded-md"
-              />
-            ))}
-          </div>
-
-          {/* Verify button */}
-          <Link href="/dashboard">
-            <Button onClick={handleVerify}>Verify</Button>
-          </Link>
-
-          <p className="px-8 text-center text-sm text-muted-foreground">
-            <span className="font-bold">Resend OTP</span> |{" "}
-            <span className="font-bold">Change Number</span>
-          </p>
-        </div>
+        </form>
       </div>
     </>
   );
