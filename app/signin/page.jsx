@@ -16,15 +16,13 @@ export default function OTPPage() {
   const otpnumber = query.get('otp');
   const phone = query.get('phone');
 
-  const { authUser, setAuthUser, isLoggedIn, setIsLoggedIn } = useAuth();
-
   const [otp, setOtp] = useState(
     otpnumber?.toString().split('') || ['', '', '', '']
   );
 
   async function getData(values) {
     const apiResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/employer/verify-opt`,
+      `${process.env.NEXT_PUBLIC_API_URL}/employer/password-submit`,
       {
         method: 'POST',
         headers: {
@@ -41,19 +39,16 @@ export default function OTPPage() {
 
   const formik = useFormik({
     initialValues: {
-      phone: phone || '',
-      otp: otpnumber || '',
+      phone: +phone || '',
+      password: otpnumber || '',
     },
     onSubmit: async (values) => {
       try {
         const data = await getData(values);
         // setResponse(data);
-        if (data.status === 'success') {
-          localStorage.setItem('token', JSON.stringify(data.data.token));
-          localStorage.setItem('user', JSON.stringify(data.data.user));
-        } else {
-          console.error('Registration failed. Message:', data.message);
-        }
+        console.log(data, 'from data inline in 49');
+        localStorage.setItem('token', JSON.stringify(data.token));
+        localStorage.setItem('user', JSON.stringify(data.user));
       } catch (error) {
         console.error('Error during API request:', error.message);
       }
