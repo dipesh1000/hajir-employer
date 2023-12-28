@@ -1,10 +1,14 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import DynamicRadioButtons from "@/app/components/DynamicRadioButtons";
 import { Button } from "@/components/ui/button";
+import { useCreateCompanyContext } from "@/context/CreateCompanyContext";
 
 const LeftCreateCompany = () => {
+  const { formState, updateFormState, handleSubmit } =
+    useCreateCompanyContext();
+
   const days = [
     {
       id: "sunday",
@@ -35,34 +39,23 @@ const LeftCreateCompany = () => {
       label: "Saturday",
     },
   ];
-  const NetworkOptions = [
-    { label: "Any Network", value: "Any Network" },
-    {
-      label: "Private office IP [192.168.1.10]",
-      value: "Private office IP [192.168.1.10]",
-    },
-  ];
-
-  const [selectedDays, setSelectedDays] = useState([]);
-  const [workingHours, setWorkingHours] = useState(480); // Default to 08:00 (8 hours * 60 minutes)
-  const [selectedNetwork, setSelectedNetwork] = useState(null);
 
   const handleDayToggle = (dayId) => {
-    if (selectedDays.includes(dayId)) {
-      setSelectedDays(selectedDays.filter((day) => day !== dayId));
-    } else {
-      setSelectedDays([...selectedDays, dayId]);
-    }
+    updateFormState("selectedDays", (prevSelectedDays) => {
+      if (prevSelectedDays.includes(dayId)) {
+        return prevSelectedDays.filter((day) => day !== dayId);
+      } else {
+        return [...prevSelectedDays, dayId];
+      }
+    });
   };
 
   const handleDecreaseTime = () => {
-    if (workingHours > 0) {
-      setWorkingHours(workingHours - 10);
-    }
+    updateFormState("workingHours", (prevHours) => Math.max(prevHours - 10, 0));
   };
 
   const handleIncreaseTime = () => {
-    setWorkingHours(workingHours + 10);
+    updateFormState("workingHours", (prevHours) => prevHours + 10);
   };
 
   const formatTime = (minutes) => {
@@ -84,19 +77,19 @@ const LeftCreateCompany = () => {
           key={day.id}
           onClick={() => handleDayToggle(day.id)}
           className={`flex flex-row items-start space-x-3 space-y-0 cursor-pointer p-2 rounded ${
-            selectedDays.includes(day.id)
+            formState.selectedDays.includes(day.id)
               ? "bg-blue-200 border border-blue-500"
               : ""
           }`}
         >
           <Checkbox
-            checked={selectedDays.includes(day.id)}
+            checked={formState.selectedDays.includes(day.id)}
             onCheckedChange={() => handleDayToggle(day.id)}
           />
           <span className="font-normal">{day.label}</span>
         </div>
       ))}
-      <p> Select Business Leave Days : {selectedDays.join(", ")}</p>
+      <p> Select Business Leave Days : {formState.selectedDays.join(", ")}</p>
 
       <div className="mb-4 mt-8">
         <h2>Office Working Hours</h2>
@@ -107,7 +100,7 @@ const LeftCreateCompany = () => {
           >
             -
           </button>
-          <div>{formatTime(workingHours)}</div>
+          <div>{formatTime(formState.workingHours)}</div>
           <button
             onClick={handleIncreaseTime}
             className="p-2 rounded bg-blue-200 cursor-pointer"
@@ -119,15 +112,23 @@ const LeftCreateCompany = () => {
         <div className="space-y-4 flex flex-col">
           <DynamicRadioButtons
             title="Staff Code"
-            options={NetworkOptions}
-            onSelect={setSelectedNetwork}
+            options={[
+              { label: "Any Network", value: "Any Network" },
+              {
+                label: "Private office IP [192.168.1.10]",
+                value: "Private office IP [192.168.1.10]",
+              },
+            ]}
+            onSelect={(value) => updateFormState("selectedNetwork", value)}
             containerClassName="ml-4 space-y-2"
             labelClassName="ml-4 text-lg"
           />
         </div>
-        <p>Selected Staff Code: {selectedNetwork}</p>
+        <p>Selected Staff Code: {formState.selectedNetwork}</p>
       </div>
-      <Button className="bg-purple-600">Add</Button>
+      <Button className="bg-purple-600" onClick={handleSubmit}>
+        Add
+      </Button>
     </div>
   );
 };

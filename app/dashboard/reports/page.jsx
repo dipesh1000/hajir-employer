@@ -115,7 +115,36 @@ const OverviewReport = () => {
           </div>
         </div>
 
-        <TaskBox loadingPercentage={80} />
+        <div class="w-full flex justify-center items-center mt-12 gap-8 text-gray-200">
+          <section class="h-56 w-56 flex bg-sky-800 shadow-sky-800/50 shadow-2xl rounded-xl justify-center items-center text-gray-200">
+            <div class="relative flex flex-col justify-center items-center select-none">
+              <svg class="relative flex w-48 h-48 items-center justify-center transform -rotate-90">
+                <circle
+                  class="text-slate-400"
+                  stroke="currentColor"
+                  stroke-width="4"
+                  cx="50%"
+                  cy="50%"
+                  r="48"
+                  fill="transparent"
+                />
+                <circle
+                  cx="50%"
+                  cy="50%"
+                  r="48"
+                  stroke="currentColor"
+                  id="robin"
+                  stroke-linecap="round"
+                  stroke-width="4"
+                  fill="transparent"
+                  class="text-orange-500 transition-all duration-500"
+                />
+              </svg>
+              <span class="absolute text-2xl top-20" id="robin1"></span>
+              <div class="relative text-base mb-5">Attendance</div>
+            </div>
+          </section>
+        </div>
       </div>
     </>
   );
