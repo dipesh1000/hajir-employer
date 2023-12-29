@@ -1,56 +1,54 @@
-'use client';
-// OTPPage.jsx
-import React, { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button'; // Make sure to import necessary components
-import { Button } from '@/components/ui/button';
-import { toast } from 'react-toastify';
-import { useFormik } from 'formik';
-import { useAuth } from '@/context/AuthContext';
+"use client";
+
+import React, { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { useFormik } from "formik";
 
 export default function OTPPage() {
   const query = useSearchParams();
-  const otpnumber = query.get('otp');
-  const phone = query.get('phone');
+  const otpnumber = query.get("otp");
+  const phone = query.get("phone");
 
   const [otp, setOtp] = useState(
-    otpnumber?.toString().split('') || ['', '', '', '']
+    otpnumber?.toString().split("") || ["", "", "", ""]
   );
 
   async function getData(values) {
     const apiResponse = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/employer/password-submit`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(values),
       }
     );
     if (!apiResponse.ok) {
-      throw new Error('Network response was not ok');
+      throw new Error("Network response was not ok");
     }
     return apiResponse.json();
   }
 
   const formik = useFormik({
     initialValues: {
-      phone: +phone || '',
-      password: otpnumber || '',
+      phone: +phone || "",
+      password: otpnumber || "",
     },
     onSubmit: async (values) => {
       try {
         const data = await getData(values);
         // setResponse(data);
-        console.log(data, 'from data inline in 49');
-        localStorage.setItem('token', JSON.stringify(data.token));
-        localStorage.setItem('user', JSON.stringify(data.user));
+        console.log(data, "from data inline in 49");
+        localStorage.setItem("token", JSON.stringify(data.token));
+        localStorage.setItem("user", JSON.stringify(data.user));
       } catch (error) {
-        console.error('Error during API request:', error.message);
+        console.error("Error during API request:", error.message);
       }
     },
     enableReinitialize: true,
@@ -60,44 +58,9 @@ export default function OTPPage() {
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-    let otpString = newOtp ? newOtp.join('') : '';
-    formik.setFieldValue('otp', otpString);
+    let otpString = newOtp ? newOtp.join("") : "";
+    formik.setFieldValue("otp", otpString);
   };
-
-  // const handleVerify = async () => {
-  //   const enteredOtp = otp.join('');
-  //   const apiEndpoint = `${process.env.NEXT_PUBLIC_API_URL}/employer/verify-opt`;
-
-  //   try {
-  //     const response = await fetch(apiEndpoint, {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({ otp: enteredOtp, phone }),
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error('Network response was not ok');
-  //     }
-
-  //     const data = await response.json();
-
-  //     if (data.status === 'success') {
-  //       // Use react-toastify to show success message
-  //       toast.success(
-  //         'OTP verification successful! Redirecting to dashboard...'
-  //       );
-  //       router.push('/dashboard');
-  //     } else {
-  //       // Use react-toastify to show error message
-  //       toast.error(`OTP verification failed. Message: ${data.message}`);
-  //     }
-  //   } catch (error) {
-  //     // Use react-toastify to show a generic error message
-  //     toast.error(`Error during OTP verification: ${error.message}`);
-  //   }
-  // };
 
   return (
     <>
@@ -121,8 +84,8 @@ export default function OTPPage() {
         <Link
           href="https://hajirapp.com"
           className={cn(
-            buttonVariants({ variant: 'ghost' }),
-            'absolute right-4 top-4 md:right-8 md:top-8'
+            buttonVariants({ variant: "ghost" }),
+            "absolute right-4 top-4 md:right-8 md:top-8"
           )}
         >
           Official Site
@@ -180,13 +143,10 @@ export default function OTPPage() {
               ))}
             </div>
 
-            {/* Verify button */}
-            {/* <Link href="/dashboard"> */}
             <Button type="submit">Verify</Button>
-            {/* </Link> */}
 
             <p className="px-8 text-center text-sm text-muted-foreground">
-              <span className="font-bold">Resend OTP</span> |{' '}
+              <span className="font-bold">Resend OTP</span> |{" "}
               <span className="font-bold">Change Number</span>
             </p>
           </div>

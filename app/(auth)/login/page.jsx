@@ -1,67 +1,51 @@
 // AuthenticationPage.jsx
-'use client';
-import React, { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button';
-import UserAuthForm from '../components/UserAuthForm';
-import { useFormik } from 'formik';
-import { useRouter } from 'next/navigation';
+"use client";
+import React, { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
+import { useFormik } from "formik";
+import { useRouter } from "next/navigation";
+import UserAuthForm from "@/app/components/UserAuthForm";
 
 export default function AuthenticationPage() {
   const [response, setResponse] = useState({});
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
-      phone: '',
+      phone: "",
     },
     onSubmit: async (values) => {
       try {
         const apiResponse = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/employer/register`,
           {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify(values),
           }
         );
         if (!apiResponse.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error("Network response was not ok");
         }
         const data = await apiResponse.json();
         setResponse(data);
-        if (data.status === 'success') {
+        if (data.status === "success") {
           alert(`Successfully Registered.  \n Your OTP is: ${data.data.otp}`);
-          console.log('OTP:values', data.data.otp);
+          console.log("OTP:values", data.data.otp);
           // console.log('Token:', data.data.token);
           router.push(`/signin?phone=${values.phone}&otp=${data.data.otp}`);
         } else {
-          console.error('Registration failed. Message:', data.message);
+          console.error("Registration failed. Message:", data.message);
         }
       } catch (error) {
-        console.error('Error during API request:', error.message);
+        console.error("Error during API request:", error.message);
       }
     },
   });
-
-  // const handleSubmit = async (event) => {
-
-  //   event.preventDefault();
-  //   setIsLoading(true);
-  //   // Assume that the phone number is retrieved from the input with the id "number"
-  //   const phoneNumber = event.target.number.value;
-
-  //   try {
-  //     await onSubmit(phoneNumber);
-  //   } catch (error) {
-  //     console.error('Error during API request:', error.message);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   return (
     <>
@@ -85,8 +69,8 @@ export default function AuthenticationPage() {
         <Link
           href="https://hajirapp.com"
           className={cn(
-            buttonVariants({ variant: 'ghost' }),
-            'absolute right-4 top-4 md:right-8 md:top-8'
+            buttonVariants({ variant: "ghost" }),
+            "absolute right-4 top-4 md:right-8 md:top-8"
           )}
         >
           Official Site
